@@ -1,0 +1,30 @@
+{
+  "name": "auth-service",
+  "version": "1.0.0",
+  "description": "A JWT based resuable authentication module using sqlite3 database.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yogeshCelestial/auth-service.git"
+  },
+  "author": "Yogesh Chaudhary",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yogeshCelestial/auth-service/issues"
+  },
+  "homepage": "https://github.com/yogeshCelestial/auth-service#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
