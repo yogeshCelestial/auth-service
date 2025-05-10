@@ -36,7 +36,19 @@ const updateUser = () => {};
 
 const deleteUser = () => {};
 
-const getUserByEmail = () => {};
+const getUserByEmail = (req, res) => {
+  const { email } = req.params;
+  const emailDecoded = Buffer.from(email, "base64").toString("utf-8");
+  db.get(`SELECT * FROM users WHERE email = ?`, [emailDecoded], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!row) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(row);
+  });
+};
 
 module.exports = {
   createUser,

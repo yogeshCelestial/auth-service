@@ -13,9 +13,6 @@ db.serialize(() => {
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
       `);
-  db.each("SELECT * FROM users", (err, row) => {
-    console.log(row);
-  });
 });
 
 module.exports = db;
