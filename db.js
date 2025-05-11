@@ -13,6 +13,15 @@ db.serialize(() => {
           updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
       `);
+      db.run(`
+        CREATE TABLE IF NOT EXISTS refresh_tokens (
+          id TEXT PRIMARY KEY NOT NULL,
+          user_id TEXT NOT NULL,
+          token TEXT NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )`)
 });
 
 module.exports = db;
