@@ -1,11 +1,11 @@
 const { Router } = require("express");
 const routes = Router();
-const { login, logout } = require("../controllers/auth.js");
+const { login, logout, manageRefreshToken } = require("../controllers/auth.js");
 
 routes.post("/login", login);
 
 routes.get("/logout", logout);
 
-// routes.get("/refresh-token", issueRefreshToken);
+routes.get("/refresh-token", manageRefreshToken);
 
 module.exports = routes;

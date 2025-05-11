@@ -3,6 +3,8 @@ const {
   comparePassword,
   generateJWT,
   generateRefreshToken,
+  sendTokensToClient,
+  verifyRefreshToken,
 } = require("../utils.js");
 const { v4: uuidv4 } = require("uuid");
 
@@ -41,18 +43,63 @@ const login = async (req, res) => {
         }
       }
     );
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: { id: user.id, name: user.name, email: user.email },
-    });
+    sendTokensToClient(res, refreshToken, user, "Login successful");
   });
+};
+
+const manageRefreshToken = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  // Check if the refresh token is present in the request
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+  // Verify the refresh token
+  const isTokenValid = await verifyRefreshToken(refreshToken);
+  console.log("isTokenValid", isTokenValid);
+  if (!isTokenValid) {
+    return res.status(403).json({ message: "Invalid refresh token" });
+  }
+  // Check if the refresh token exists in the database
+  // and is associated with the user
+  // If it exists, generate a new refresh token and send it to the client
+  db.get(
+    `SELECT * FROM refresh_tokens WHERE token = ?`,
+    refreshToken,
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!row) {
+        return res.status(403).json({ message: "Invalid refresh token" });
+      }
+      const userId = row.user_id;
+      db.get(`SELECT * FROM users WHERE id = ?`, userId, (err, userRow) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        if (!userRow) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        // new refresh token
+        const newRefreshToken = generateRefreshToken(userRow);
+        db.run(
+          `UPDATE refresh_tokens SET token = ? WHERE id = ?`,
+          [newRefreshToken, row.id],
+          (err) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            }
+          }
+        );
+        sendTokensToClient(
+          res,
+          newRefreshToken,
+          userRow,
+          "Refresh token successful"
+        );
+      });
+    }
+  );
 };
 
 const logout = async (req, res) => {
@@ -62,4 +109,5 @@ const logout = async (req, res) => {
 module.exports = {
   login,
   logout,
+  manageRefreshToken,
 };
