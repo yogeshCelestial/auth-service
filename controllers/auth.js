@@ -103,6 +103,36 @@ const manageRefreshToken = async (req, res) => {
 };
 
 const logout = async (req, res) => {
+  const { refreshToken } = req.cookies;
+  // Check if the refresh token is present in the request
+  if (!refreshToken) {
+    return res.status(401).json({ message: "Refresh token not found" });
+  }
+  // Check if the refresh token exists in the database
+  db.get(
+    `SELECT * FROM refresh_tokens WHERE token = ?`,
+    refreshToken,
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (!row) {
+        return res.status(403).json({ message: "Invalid refresh token" });
+      }
+      // Delete the refresh token from the database
+      db.run(`DELETE FROM refresh_tokens WHERE id = ?`, row.id, (err) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+      });
+    }
+  );
+  // Clear the refresh token cookie
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
   res.status(200).json({ message: "Logout successful" });
 };
 
